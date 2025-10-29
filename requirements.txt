@@ -1,8 +1,6 @@
-
 fastapi
 uvicorn
-requests
-pandas
-numpy
-python-multipart
 smartapi-python
+python-multipart
+pydantic
+sqlite3-binary
