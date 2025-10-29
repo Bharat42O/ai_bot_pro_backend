@@ -20,7 +20,7 @@ smartApi = SmartConnect(api_key)
 
 try:
     totp = os.getenv("XAAUUDBBXI37GV4QK436ZTT47U")  # your 2FA TOTP secret
-password = os.getenv("1241")  # your Angel One login password
+password = os.getenv("1242")  # your Angel One login password
 
 data = smartApi.generateSession(client_id, password, totp)
 
