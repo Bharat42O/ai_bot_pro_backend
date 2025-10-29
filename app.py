@@ -7,7 +7,7 @@ import os
 import json
 from typing import List
 
-from smartapi import SmartConnect
+from SmartApi import SmartConnect
 import os
 
 # Angel One credentials from environment variables
