@@ -19,7 +19,11 @@ api_secret = os.getenv("ANGEL_API_SECRET")
 smartApi = SmartConnect(api_key)
 
 try:
-    data = smartApi.generateSession(client_id, api_secret)
+    totp = os.getenv("XAAUUDBBXI37GV4QK436ZTT47U")  # your 2FA TOTP secret
+password = os.getenv("1241")  # your Angel One login password
+
+data = smartApi.generateSession(client_id, password, totp)
+
     refreshToken = data['data']['refreshToken']
     feedToken = smartApi.getfeedToken()
     print("Feed token:", feedToken)
