@@ -3,4 +3,3 @@ uvicorn
 smartapi-python
 python-multipart
 pydantic
-sqlite3-binary
