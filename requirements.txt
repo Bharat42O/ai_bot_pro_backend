@@ -4,3 +4,5 @@ smartapi-python
 python-multipart
 pydantic
 logzero
+websocket-client
+requests
