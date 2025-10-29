@@ -7,6 +7,31 @@ import os
 import json
 from typing import List
 
+from smartapi import SmartConnect
+import os
+
+# Angel One credentials from environment variables
+api_key = os.getenv("ANGEL_API_KEY")
+client_id = os.getenv("CLIENT_ID")
+api_secret = os.getenv("ANGEL_API_SECRET")
+
+# Connect to Angel One SmartAPI
+smartApi = SmartConnect(api_key)
+
+try:
+    data = smartApi.generateSession(client_id, api_secret)
+    refreshToken = data['data']['refreshToken']
+    feedToken = smartApi.getfeedToken()
+    print("Feed token:", feedToken)
+
+    # Example: Get NIFTY 50 live data
+    nifty_data = smartApi.ltpData("NSE", "NIFTY 50", "26000")
+    print("NIFTY:", nifty_data)
+
+except Exception as e:
+    print("Error connecting to Angel One:", e)
+
+
 # Simple backend to store trade lines and respond to chat queries using stored docs
 DB_FILE = 'knowledge.db'
 
