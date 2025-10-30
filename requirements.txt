@@ -1,9 +1,8 @@
 fastapi
 uvicorn
 smartapi-python
-python-multipart
-pydantic
-logzero
-websocket-client
 pyotp
 requests
+logzero
+python-multipart
+pydantic

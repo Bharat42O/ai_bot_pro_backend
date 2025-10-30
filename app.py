@@ -20,8 +20,7 @@ TOTP_SECRET = os.getenv("TOTP_SECRET")
 try:
     if not all([API_KEY, API_SECRET, CLIENT_ID, PASSWORD, TOTP_SECRET]):
         raise ValueError("One or more environment variables are missing!")
-
-    smart_api = SmartConnect(api_key=API_KEY)
+from SmartApi import SmartConnect(api_key=API_KEY)
     totp = pyotp.TOTP(TOTP_SECRET).now()
     session_data = smart_api.generateSession(CLIENT_ID, PASSWORD, totp)
     print("✅ Logged in successfully with Angel One!")
