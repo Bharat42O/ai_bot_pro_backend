@@ -145,3 +145,24 @@ def analysis():
             "Avoid revenge trading"
         ]
     }
+@app.get("/option_chain")
+def option_chain(symbol: str = "NIFTY"):
+    # Dummy data — replace with SmartAPI option chain fetch
+    option_data = {
+        "19600": {"call_oi": 120000, "put_oi": 80000},
+        "19700": {"call_oi": 95000, "put_oi": 110000},
+        "19800": {"call_oi": 70000, "put_oi": 130000},
+        "19900": {"call_oi": 50000, "put_oi": 90000},
+    }
+
+    max_call = max(option_data.items(), key=lambda x: x[1]["call_oi"])
+    max_put = max(option_data.items(), key=lambda x: x[1]["put_oi"])
+
+    return {
+        "symbol": symbol,
+        "max_call_strike": max_call[0],
+        "max_call_oi": max_call[1]["call_oi"],
+        "max_put_strike": max_put[0],
+        "max_put_oi": max_put[1]["put_oi"],
+        "note": f"Strong resistance at {max_call[0]}, support at {max_put[0]}"
+    }
