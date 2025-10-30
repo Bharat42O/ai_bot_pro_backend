@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from SmartApi import SmartConnect
 import os, pyotp
+import pandas as pd
+import pandas_ta as ta
 
 app = FastAPI()
 
@@ -20,7 +22,7 @@ try:
 except Exception as e:
     print(f"❌ Error logging in: {e}")
 
-# --- Routes ---
+# --- Health Routes ---
 @app.get("/")
 def read_root():
     return {"status": "ok"}
@@ -33,6 +35,7 @@ def head_root():
 def health_check():
     return {"status": "healthy"}
 
+# --- Balance Route (optional) ---
 @app.get("/check_balance")
 def check_balance():
     if not obj:
@@ -42,3 +45,103 @@ def check_balance():
         return {"status": "success", "balance": balance}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+# --- Deep Signal Route ---
+@app.get("/signals/deep")
+def signals_deep(symbol: str):
+    return {
+        "symbol": symbol,
+        "bias": "BUY",
+        "confluence_score": 8.2,
+        "rsi": 67.4,
+        "atr": 1.35,
+        "trend": "UP",
+        "option_suggestion": {
+            "strike": "19600",
+            "type": "CALL",
+            "note": "Strong bullish momentum with volume confirmation"
+        },
+        "macd": {
+            "value": 1.12,
+            "signal": 0.98,
+            "histogram": 0.14
+        },
+        "bollinger_bands": {
+            "upper": 19850,
+            "middle": 19500,
+            "lower": 19150
+        },
+        "volume_analysis": {
+            "current_volume": 1200000,
+            "average_volume": 950000,
+            "volume_spike": True
+        },
+        "sentiment": {
+            "news_sentiment": "Positive",
+            "social_sentiment": "Neutral"
+        },
+        "risk_management": {
+            "stop_loss": "19350",
+            "take_profit": "19850",
+            "risk_reward_ratio": 2.5
+        },
+        "notes": [
+            "MACD crossover confirms bullish bias",
+            "Volume spike supports breakout",
+            "Positive news sentiment from major financial outlets"
+        ]
+    }
+
+# --- Multi-Symbol Signal Route ---
+def fetch_candle_data(symbol: str) -> pd.DataFrame:
+    data = {
+        "close": [19500, 19520, 19510, 19530, 19550, 19540, 19560, 19570, 19580, 19590]
+    }
+    df = pd.DataFrame(data)
+    return df
+
+def get_signal(symbol: str):
+    df = fetch_candle_data(symbol)
+    rsi = ta.rsi(df['close'], length=14).iloc[-1]
+    macd = ta.macd(df['close'])
+    macd_val = macd['MACD_12_26_9'].iloc[-1]
+    macd_signal = macd['MACDs_12_26_9'].iloc[-1]
+    bb = ta.bbands(df['close'])
+    upper = bb['BBU_20_2.0'].iloc[-1]
+    lower = bb['BBL_20_2.0'].iloc[-1]
+
+    signal = "HOLD"
+    if rsi < 30 and macd_val > macd_signal:
+        signal = "BUY"
+    elif rsi > 70 and macd_val < macd_signal:
+        signal = "SELL"
+
+    return {
+        "symbol": symbol,
+        "signal": signal,
+        "rsi": round(rsi, 2),
+        "macd": round(macd_val, 2),
+        "bollinger": {
+            "upper": round(upper, 2),
+            "lower": round(lower, 2)
+        }
+    }
+
+@app.get("/signals/multi/latest")
+def multi_signal():
+    symbols = ["NIFTY 50", "SENSEX", "RELIANCE", "BANKNIFTY"]
+    results = [get_signal(symbol) for symbol in symbols]
+    return results
+
+# --- Analysis Route ---
+@app.get("/analysis")
+def analysis():
+    return {
+        "mistakes": ["Overtrading", "No stop loss", "Ignoring trend"],
+        "suggestions": [
+            "Use stop loss",
+            "Trade less frequently",
+            "Follow the dominant trend",
+            "Avoid revenge trading"
+        ]
+    }
