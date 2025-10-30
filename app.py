@@ -62,3 +62,12 @@ def head_root():
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
+
+# ✅ TEST ENDPOINT
+@app.get("/check_balance")
+def check_balance():
+    try:
+        balance = obj.rmsLimit()
+        return {"status": "success", "balance": balance}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
