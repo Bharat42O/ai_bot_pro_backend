@@ -47,3 +47,18 @@ def get_session():
         return {"status": "success", "data": session_data}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"status": "ok"}
+
+@app.head("/")
+def head_root():
+    return {"status": "ok"}
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
