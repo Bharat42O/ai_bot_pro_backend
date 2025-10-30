@@ -6,3 +6,4 @@ requests
 logzero
 python-multipart
 pydantic
+websocket-client
