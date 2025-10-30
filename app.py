@@ -1,56 +1,26 @@
-import os
-import pyotp
-from SmartApi import SmartConnect   # ✅ correct import (lowercase smartapi)
 from fastapi import FastAPI
+from SmartApi import SmartConnect
+import os, pyotp
 
 app = FastAPI()
 
-# -----------------------------
-# Load credentials from environment variables
-# -----------------------------
-API_KEY = os.getenv("API_KEY")
-API_SECRET = os.getenv("API_SECRET")
-CLIENT_ID = os.getenv("CLIENT_ID")
-PASSWORD = os.getenv("PASSWORD")
-TOTP_SECRET = os.getenv("TOTP_SECRET")
+# --- Load environment variables ---
+api_key = os.getenv("API_KEY") or os.getenv("ANGLE_API_KEY")
+client_id = os.getenv("CLIENT_ID")
+password = os.getenv("PASSWORD") or os.getenv("ANGLE_PASSWORD")
+totp_secret = os.getenv("TOTP_SECRET")
 
-# -----------------------------
-# Angel One login
-# -----------------------------
-session_data = None
+# --- Initialize SmartApi session ---
+obj = None
 try:
-    if not all([API_KEY, API_SECRET, CLIENT_ID, PASSWORD, TOTP_SECRET]):
-        raise ValueError("One or more environment variables are missing!")
-
-    # ✅ instantiate SmartConnect properly
-    smart_api = SmartConnect(api_key=API_KEY)
-
-    # ✅ generate TOTP and login session
-    totp = pyotp.TOTP(TOTP_SECRET).now()
-    session_data = smart_api.generateSession(CLIENT_ID, PASSWORD, totp)
-
+    otp = pyotp.TOTP(totp_secret).now()
+    obj = SmartConnect(api_key)
+    session_data = obj.generateSession(client_id, password, otp)
     print("✅ Logged in successfully with Angel One!")
-
 except Exception as e:
-    print("❌ Error connecting to Angel One:", e)
+    print(f"❌ Error logging in: {e}")
 
-# -----------------------------
-# FastAPI routes
-# -----------------------------
-@app.get("/")
-def home():
-    return {"message": "AI Bot Pro Backend is running successfully!"}
-
-@app.get("/session")
-def get_session():
-    try:
-        return {"status": "success", "data": session_data}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
-from fastapi import FastAPI
-
-app = FastAPI()
-
+# --- Routes ---
 @app.get("/")
 def read_root():
     return {"status": "ok"}
@@ -63,9 +33,10 @@ def head_root():
 def health_check():
     return {"status": "healthy"}
 
-# ✅ TEST ENDPOINT
 @app.get("/check_balance")
 def check_balance():
+    if not obj:
+        return {"status": "error", "message": "SmartApi not initialized"}
     try:
         balance = obj.rmsLimit()
         return {"status": "success", "balance": balance}
