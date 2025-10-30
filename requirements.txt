@@ -8,4 +8,5 @@ python-multipart
 pydantic
 websocket-client
 pandas
-pandas-ta==0.3.14
+git+https://github.com/twopirllc/pandas-ta.git
+
