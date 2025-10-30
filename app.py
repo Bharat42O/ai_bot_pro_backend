@@ -1,6 +1,6 @@
 import os
 import pyotp
-from smartapi import SmartConnect   # ✅ correct import (lowercase smartapi)
+from SmartApi import SmartConnect   # ✅ correct import (lowercase smartapi)
 from fastapi import FastAPI
 
 app = FastAPI()
