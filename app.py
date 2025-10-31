@@ -237,5 +237,20 @@ def price_action(symbol: str = "NIFTY"):
         "note": "Basic price action analysis using simulated OHLC data"
     }
 
-# --- Live Feed Route ---
-@app.get("/live
+@app.get("/live_feed")
+def live_feed(symbol: str = "NIFTY"):
+    import random
+    import pandas as pd
+
+    price = round(random.uniform(19500, 19700), 2)
+    volume = random.randint(800000, 1500000)
+    change = round(random.uniform(-0.5, 0.5), 2)
+
+    return {
+        "symbol": symbol,
+        "live_price": price,
+        "volume": volume,
+        "change_percent": change,
+        "timestamp": pd.Timestamp.now().isoformat(),
+        "note": "Simulated live feed — connect to SmartAPI WebSocket for real data"
+    }
