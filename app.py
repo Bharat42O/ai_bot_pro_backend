@@ -312,3 +312,21 @@ def coach_advice():
         "advice": advice,
         "note": "AI coach तुम्हारे trade history से सीखकर सलाह दे रहा है"
     }
+# ✅ Safe way to get feedToken
+try:
+    otp = pyotp.TOTP(totp_secret).now()
+    obj = SmartConnect(api_key)
+    session_data = obj.generateSession(client_id, password, otp)
+    print("✅ Logged in successfully with Angel One!")
+    print("Session Data:", session_data)
+
+    # Safe way to get feedToken
+    FEED_TOKEN = session_data.get("feedToken") or session_data.get("data", {}).get("feedToken")
+
+    if not FEED_TOKEN:
+        print("❌ feedToken is missing — WebSocket won't work")
+    else:
+        print("✅ feedToken is ready:", FEED_TOKEN)
+
+except Exception as e:
+    print(f"❌ Error logging in: {e}")
