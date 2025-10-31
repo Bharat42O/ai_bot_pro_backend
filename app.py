@@ -239,4 +239,10 @@ def price_action(symbol: str = "NIFTY"):
         "symbol": symbol,
         "candlestick_patterns": df["pattern"].tolist(),
         "note": "Basic price action analysis using simulated OHLC data"
+    }@app.get("/")
+def home():
+    return {
+        "message": "Welcome to AI Bot Pro Backend!",
+        "routes": ["/ai_signal", "/price_action"]
     }
+
