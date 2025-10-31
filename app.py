@@ -42,6 +42,11 @@ if FEED_TOKEN:jwt_token = session_data.get("jwtToken") or session_data.get("data
 sws = SmartWebSocketV2(FEED_TOKEN, client_id, api_key, jwt_token)
 
     def on_data(wsapp, message):
+    token = message.get("token")
+    price = message.get("ltp")
+    latest_ticks[token] = price
+    print(f"📡 Tick for {token}: {price}")
+
         token = message.get("token")
         price = message.get("ltp")
         latest_ticks[token] = price
