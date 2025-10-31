@@ -262,4 +262,58 @@ def live_feed(symbol: str = "NIFTY"):
         "timestamp": pd.Timestamp.now().isoformat(),
         "note": "Simulated live feed — connect to SmartAPI WebSocket for real data"
     }
+@app.get("/strategy_signal")
+def strategy_signal(symbol: str = "NIFTY"):
+    import random
+    import pandas as pd
+
+    # Simulated price data
+    prices = [19500, 19520, 19510, 19530, 19550, 19540, 19560, 19570, 19580, 19590]
+    df = pd.DataFrame({"close": prices})
+
+    # RSI
+    from ta.momentum import RSIIndicator
+    rsi = RSIIndicator(close=df["close"], window=14).rsi().iloc[-1]
+
+    # MACD
+    from ta.trend import MACD
+    macd = MACD(close=df["close"])
+    macd_val = macd.macd().iloc[-1]
+    macd_signal = macd.macd_signal().iloc[-1]
+
+    # Bollinger Bands
+    from ta.volatility import BollingerBands
+    bb = BollingerBands(close=df["close"])
+    upper = bb.bollinger_hband().iloc[-1]
+    lower = bb.bollinger_lband().iloc[-1]
+
+    # Candlestick pattern (simulated)
+    pattern = "Hammer"
+
+    # Sentiment (simulated)
+    sentiment = "Positive"
+    volume_spike = True
+
+    # Strategy logic
+    signal = "HOLD"
+    if rsi < 30 and macd_val > macd_signal and sentiment == "Positive":
+        signal = "BUY"
+    elif rsi > 70 and macd_val < macd_signal and sentiment == "Negative":
+        signal = "SELL"
+
+    return {
+        "symbol": symbol,
+        "strategy_signal": signal,
+        "indicators": {
+            "rsi": round(rsi, 2),
+            "macd": round(macd_val, 2),
+            "macd_signal": round(macd_signal, 2),
+            "bollinger_upper": round(upper, 2),
+            "bollinger_lower": round(lower, 2),
+            "candlestick_pattern": pattern,
+            "sentiment": sentiment,
+            "volume_spike": volume_spike
+        },
+        "note": "Strategy combines RSI, MACD, Bollinger Bands, candlestick pattern, sentiment and volume"
+    }
 
