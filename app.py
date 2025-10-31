@@ -186,3 +186,57 @@ def ai_signal(symbol: str = "NIFTY"):
         },
         "note": "AI model suggests bullish momentum with strong volume and positive sentiment"
     }
+from fastapi import FastAPI
+import pandas as pd
+
+app = FastAPI()
+
+@app.get("/price_action")
+def price_action(symbol: str = "NIFTY"):
+    # Simulated OHLC data — replace with real data later
+    data = {
+        "open": [100, 102, 101, 105, 107],
+        "high": [103, 104, 103, 108, 109],
+        "low": [99, 100, 100, 104, 106],
+        "close": [102, 101, 105, 107, 108]
+    }
+    df = pd.DataFrame(data)
+
+    # Detect basic candlestick patterns
+    patterns = []
+
+    for i in range(len(df)):
+        o = df["open"][i]
+        h = df["high"][i]
+        l = df["low"][i]
+        c = df["close"][i]
+
+        body = abs(c - o)
+        range_ = h - l
+
+        # Doji: small body, large range
+        if body < 0.2 and range_ > 1.5:
+            patterns.append("Doji")
+        # Hammer: small body near top, long lower wick
+        elif c > o and (o - l) > body * 2:
+            patterns.append("Hammer")
+        # Engulfing: current body fully covers previous body
+        elif i > 0:
+            prev_o = df["open"][i - 1]
+            prev_c = df["close"][i - 1]
+            if c > o and o < prev_c and c > prev_o:
+                patterns.append("Bullish Engulfing")
+            elif c < o and o > prev_c and c < prev_o:
+                patterns.append("Bearish Engulfing")
+            else:
+                patterns.append("None")
+        else:
+            patterns.append("None")
+
+    df["pattern"] = patterns
+
+    return {
+        "symbol": symbol,
+        "candlestick_patterns": df["pattern"].tolist(),
+        "note": "Basic price action analysis using simulated OHLC data"
+    }
