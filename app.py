@@ -18,6 +18,7 @@ totp_secret = os.getenv("TOTP_SECRET")
 # --- Initialize SmartApi session ---
 obj = None
 FEED_TOKEN = None
+JWT_TOKEN = None
 try:
     otp = pyotp.TOTP(totp_secret).now()
     obj = SmartConnect(api_key)
@@ -25,12 +26,13 @@ try:
     print("✅ Logged in successfully with Angel One!")
     print("Session Data:", session_data)
 
-    # Safe way to get feedToken
     FEED_TOKEN = session_data.get("feedToken") or session_data.get("data", {}).get("feedToken")
-    if not FEED_TOKEN:
-        print("❌ feedToken is missing — WebSocket won't work")
+    JWT_TOKEN = session_data.get("jwtToken") or session_data.get("data", {}).get("jwtToken")
+
+    if not FEED_TOKEN or not JWT_TOKEN:
+        print("❌ Missing feedToken or jwtToken — WebSocket won't work")
     else:
-        print("✅ feedToken is ready:", FEED_TOKEN)
+        print("✅ Tokens ready")
 
 except Exception as e:
     print(f"❌ Error logging in: {e}")
@@ -38,15 +40,10 @@ except Exception as e:
 # --- WebSocket Setup ---
 latest_ticks = {}
 
-if FEED_TOKEN:jwt_token = session_data.get("jwtToken") or session_data.get("data", {}).get("jwtToken")
-sws = SmartWebSocketV2(FEED_TOKEN, client_id, api_key, jwt_token)
+if FEED_TOKEN and JWT_TOKEN:
+    sws = SmartWebSocketV2(FEED_TOKEN, client_id, api_key, JWT_TOKEN)
 
     def on_data(wsapp, message):
-    token = message.get("token")
-    price = message.get("ltp")
-    latest_ticks[token] = price
-    print(f"📡 Tick for {token}: {price}")
-
         token = message.get("token")
         price = message.get("ltp")
         latest_ticks[token] = price
@@ -218,25 +215,4 @@ def price_action(symbol: str = "NIFTY"):
         body = abs(c - o)
         range_ = h - l
 
-        if body < 0.2 and range_ > 1.5:
-            patterns.append("Doji")
-        elif c > o and (o - l) > body * 2:
-            patterns.append("Hammer")
-        elif i > 0:
-            prev_o, prev_c = df["open"][i - 1], df["close"][i - 1]
-            if c > o and o < prev_c and c > prev_o:
-                patterns.append("Bullish Engulfing")
-            elif c < o and o > prev_c and c < prev_o:
-                patterns.append("Bearish Engulfing")
-            else:
-                patterns.append("None")
-        else:
-            patterns.append("None")
-
-    df["pattern"] = patterns
-
-    return {
-        "symbol": symbol,
-        "candlestick_patterns": df["pattern"].tolist(),
-        "note": "Basic price action analysis using simulated OHLC data"
-    }
+        if body < 
