@@ -266,23 +266,24 @@ def live_feed(symbol: str = "NIFTY"):
 def strategy_signal(symbol: str = "NIFTY"):
     import random
     import pandas as pd
+    import math
+    from ta.momentum import RSIIndicator
+    from ta.trend import MACD
+    from ta.volatility import BollingerBands
 
     # Simulated price data
     prices = [19500, 19520, 19510, 19530, 19550, 19540, 19560, 19570, 19580, 19590]
     df = pd.DataFrame({"close": prices})
 
     # RSI
-    from ta.momentum import RSIIndicator
     rsi = RSIIndicator(close=df["close"], window=14).rsi().iloc[-1]
 
     # MACD
-    from ta.trend import MACD
     macd = MACD(close=df["close"])
     macd_val = macd.macd().iloc[-1]
     macd_signal = macd.macd_signal().iloc[-1]
 
     # Bollinger Bands
-    from ta.volatility import BollingerBands
     bb = BollingerBands(close=df["close"])
     upper = bb.bollinger_hband().iloc[-1]
     lower = bb.bollinger_lband().iloc[-1]
@@ -301,19 +302,22 @@ def strategy_signal(symbol: str = "NIFTY"):
     elif rsi > 70 and macd_val < macd_signal and sentiment == "Negative":
         signal = "SELL"
 
+    # Safe float values for JSON
+    def safe(val):
+        return None if val is None or math.isnan(val) or math.isinf(val) else round(val, 2)
+
     return {
         "symbol": symbol,
         "strategy_signal": signal,
         "indicators": {
-            "rsi": round(rsi, 2),
-            "macd": round(macd_val, 2),
-            "macd_signal": round(macd_signal, 2),
-            "bollinger_upper": round(upper, 2),
-            "bollinger_lower": round(lower, 2),
+            "rsi": safe(rsi),
+            "macd": safe(macd_val),
+            "macd_signal": safe(macd_signal),
+            "bollinger_upper": safe(upper),
+            "bollinger_lower": safe(lower),
             "candlestick_pattern": pattern,
             "sentiment": sentiment,
             "volume_spike": volume_spike
         },
         "note": "Strategy combines RSI, MACD, Bollinger Bands, candlestick pattern, sentiment and volume"
     }
-
