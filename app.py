@@ -254,3 +254,61 @@ def live_feed(symbol: str = "NIFTY"):
         "timestamp": pd.Timestamp.now().isoformat(),
         "note": "Simulated live feed — connect to SmartAPI WebSocket for real data"
     }
+from SmartApi.smartWebSocketV2 import SmartWebSocketV2
+
+FEED_TOKEN = session_data['feedToken']
+CLIENT_CODE = client_id
+
+sws = SmartWebSocketV2(FEED_TOKEN, CLIENT_CODE)
+
+latest_ticks = {}
+
+def on_data(wsapp, message):
+    token = message.get("token")
+    price = message.get("ltp")
+    latest_ticks[token] = price
+    print(f"📡 Tick for {token}: {price}")
+
+def on_open(wsapp):
+    print("✅ WebSocket Connected")
+    sws.subscribe([
+        {"exchangeType": 1, "token": "99926000"},  # NIFTY
+        {"exchangeType": 1, "token": "99926001"}   # SENSEX
+    ])
+
+sws.on_open = on_open
+sws.on_data = on_data
+sws.connect()
+@app.get("/live_feed")
+def live_feed():
+    return {
+        "NIFTY": latest_ticks.get("99926000", "No data"),
+        "SENSEX": latest_ticks.get("99926001", "No data"),
+        "note": "Live prices from SmartAPI WebSocket"
+    }
+@app.get("/coach_advice")
+def coach_advice():
+    # Simulated trade history
+    trade_log = [
+        {"symbol": "NIFTY", "loss": True, "entry_rsi": 72},
+        {"symbol": "BANKNIFTY", "loss": True, "entry_rsi": 68}
+    ]
+
+    mistakes = []
+    if trade_log[-1]["loss"] and trade_log[-2]["loss"]:
+        mistakes.append("Revenge trading")
+    if trade_log[-1]["entry_rsi"] > 70:
+        mistakes.append("Overbought entry")
+
+    if "Revenge trading" in mistakes:
+        advice = "losses के बाद emotional trading मत करो। थोड़ा break लो।"
+    elif "Overbought entry" in mistakes:
+        advice = "RSI 70 से ऊपर था — entry risky थी। अगली बार थोड़ा wait करो।"
+    else:
+        advice = "तुम discipline से चल रहे हो — बढ़िया काम!"
+
+    return {
+        "mistakes": mistakes,
+        "advice": advice,
+        "note": "AI coach तुम्हारे trade history से सीखकर सलाह दे रहा है"
+    }
