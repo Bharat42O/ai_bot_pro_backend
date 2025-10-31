@@ -166,3 +166,22 @@ def option_chain(symbol: str = "NIFTY"):
         "max_put_oi": max_put[1]["put_oi"],
         "note": f"Strong resistance at {max_call[0]}, support at {max_put[0]}"
     }
+@app.get("/ai_signal")
+def ai_signal(symbol: str = "NIFTY"):
+    # Simulated AI logic — replace with real model later
+    signal_strength = 8.7  # out of 10
+    bias = "BUY" if signal_strength > 6 else "SELL"
+
+    return {
+        "symbol": symbol,
+        "ai_signal": bias,
+        "confidence": f"{signal_strength}/10",
+        "indicators": {
+            "rsi": 62.3,
+            "macd": 1.14,
+            "volume_spike": True,
+            "trend": "UP",
+            "sentiment": "Positive"
+        },
+        "note": "AI model suggests bullish momentum with strong volume and positive sentiment"
+    }
