@@ -212,3 +212,4 @@ def price_action(symbol: str = "NIFTY"):
         body = abs(c - o)
         range_ = h - l
         if body < 0.2 and range_ > 1.5:
+    patterns.append("Doji")
