@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from SmartApi import SmartConnect
-import os, pyotp
+import os, pyotp, math, random
 import pandas as pd
 import ta
 from ta.momentum import RSIIndicator
+from ta.trend import MACD
+from ta.volatility import BollingerBands
 
 app = FastAPI()
 
@@ -23,11 +25,26 @@ try:
 except Exception as e:
     print(f"❌ Error logging in: {e}")
 
-# --- Health Routes ---
+# --- Homepage Route ---
 @app.get("/")
-def read_root():
-    return {"status": "ok"}
+def home():
+    return {
+        "message": "Welcome to AI Bot Pro Backend!",
+        "routes": [
+            "/health",
+            "/check_balance",
+            "/signals/deep",
+            "/signals/multi/latest",
+            "/analysis",
+            "/option_chain",
+            "/ai_signal",
+            "/price_action",
+            "/live_feed",
+            "/strategy_signal"
+        ]
+    }
 
+# --- Health Routes ---
 @app.head("/")
 def head_root():
     return {"status": "ok"}
@@ -36,7 +53,7 @@ def head_root():
 def health_check():
     return {"status": "healthy"}
 
-# --- Balance Route (optional) ---
+# --- Balance Route ---
 @app.get("/check_balance")
 def check_balance():
     if not obj:
@@ -98,8 +115,7 @@ def fetch_candle_data(symbol: str) -> pd.DataFrame:
     data = {
         "close": [19500, 19520, 19510, 19530, 19550, 19540, 19560, 19570, 19580, 19590]
     }
-    df = pd.DataFrame(data)
-    return df
+    return pd.DataFrame(data)
 
 def get_signal(symbol: str):
     df = fetch_candle_data(symbol)
@@ -131,8 +147,7 @@ def get_signal(symbol: str):
 @app.get("/signals/multi/latest")
 def multi_signal():
     symbols = ["NIFTY 50", "SENSEX", "RELIANCE", "BANKNIFTY"]
-    results = [get_signal(symbol) for symbol in symbols]
-    return results
+    return [get_signal(symbol) for symbol in symbols]
 
 # --- Analysis Route ---
 @app.get("/analysis")
@@ -146,19 +161,18 @@ def analysis():
             "Avoid revenge trading"
         ]
     }
+
+# --- Option Chain Route ---
 @app.get("/option_chain")
 def option_chain(symbol: str = "NIFTY"):
-    # Dummy data — replace with SmartAPI option chain fetch
     option_data = {
         "19600": {"call_oi": 120000, "put_oi": 80000},
         "19700": {"call_oi": 95000, "put_oi": 110000},
         "19800": {"call_oi": 70000, "put_oi": 130000},
         "19900": {"call_oi": 50000, "put_oi": 90000},
     }
-
     max_call = max(option_data.items(), key=lambda x: x[1]["call_oi"])
     max_put = max(option_data.items(), key=lambda x: x[1]["put_oi"])
-
     return {
         "symbol": symbol,
         "max_call_strike": max_call[0],
@@ -167,12 +181,12 @@ def option_chain(symbol: str = "NIFTY"):
         "max_put_oi": max_put[1]["put_oi"],
         "note": f"Strong resistance at {max_call[0]}, support at {max_put[0]}"
     }
+
+# --- AI Signal Route ---
 @app.get("/ai_signal")
 def ai_signal(symbol: str = "NIFTY"):
-    # Simulated AI logic — replace with real model later
-    signal_strength = 8.7  # out of 10
+    signal_strength = 8.7
     bias = "BUY" if signal_strength > 6 else "SELL"
-
     return {
         "symbol": symbol,
         "ai_signal": bias,
@@ -186,14 +200,10 @@ def ai_signal(symbol: str = "NIFTY"):
         },
         "note": "AI model suggests bullish momentum with strong volume and positive sentiment"
     }
-from fastapi import FastAPI
-import pandas as pd
 
-app = FastAPI()
-
+# --- Price Action Route ---
 @app.get("/price_action")
 def price_action(symbol: str = "NIFTY"):
-    # Simulated OHLC data — replace with real data later
     data = {
         "open": [100, 102, 101, 105, 107],
         "high": [103, 104, 103, 108, 109],
@@ -201,29 +211,17 @@ def price_action(symbol: str = "NIFTY"):
         "close": [102, 101, 105, 107, 108]
     }
     df = pd.DataFrame(data)
-
-    # Detect basic candlestick patterns
     patterns = []
-
     for i in range(len(df)):
-        o = df["open"][i]
-        h = df["high"][i]
-        l = df["low"][i]
-        c = df["close"][i]
-
+        o, h, l, c = df["open"][i], df["high"][i], df["low"][i], df["close"][i]
         body = abs(c - o)
         range_ = h - l
-
-        # Doji: small body, large range
         if body < 0.2 and range_ > 1.5:
             patterns.append("Doji")
-        # Hammer: small body near top, long lower wick
         elif c > o and (o - l) > body * 2:
             patterns.append("Hammer")
-        # Engulfing: current body fully covers previous body
         elif i > 0:
-            prev_o = df["open"][i - 1]
-            prev_c = df["close"][i - 1]
+            prev_o, prev_c = df["open"][i - 1], df["close"][i - 1]
             if c > o and o < prev_c and c > prev_o:
                 patterns.append("Bullish Engulfing")
             elif c < o and o > prev_c and c < prev_o:
@@ -232,92 +230,12 @@ def price_action(symbol: str = "NIFTY"):
                 patterns.append("None")
         else:
             patterns.append("None")
-
     df["pattern"] = patterns
-
     return {
         "symbol": symbol,
         "candlestick_patterns": df["pattern"].tolist(),
         "note": "Basic price action analysis using simulated OHLC data"
-    }@app.get("/")
-def home():
-    return {
-        "message": "Welcome to AI Bot Pro Backend!",
-        "routes": ["/ai_signal", "/price_action"]
     }
-@app.get("/live_feed")
-def live_feed(symbol: str = "NIFTY"):
-    import random
-    import pandas as pd
 
-    price = round(random.uniform(19500, 19700), 2)
-    volume = random.randint(800000, 1500000)
-    change = round(random.uniform(-0.5, 0.5), 2)
-
-    return {
-        "symbol": symbol,
-        "live_price": price,
-        "volume": volume,
-        "change_percent": change,
-        "timestamp": pd.Timestamp.now().isoformat(),
-        "note": "Simulated live feed — connect to SmartAPI WebSocket for real data"
-    }
-@app.get("/strategy_signal")
-def strategy_signal(symbol: str = "NIFTY"):
-    import random
-    import pandas as pd
-    import math
-    from ta.momentum import RSIIndicator
-    from ta.trend import MACD
-    from ta.volatility import BollingerBands
-
-    # Simulated price data
-    prices = [19500, 19520, 19510, 19530, 19550, 19540, 19560, 19570, 19580, 19590]
-    df = pd.DataFrame({"close": prices})
-
-    # RSI
-    rsi = RSIIndicator(close=df["close"], window=14).rsi().iloc[-1]
-
-    # MACD
-    macd = MACD(close=df["close"])
-    macd_val = macd.macd().iloc[-1]
-    macd_signal = macd.macd_signal().iloc[-1]
-
-    # Bollinger Bands
-    bb = BollingerBands(close=df["close"])
-    upper = bb.bollinger_hband().iloc[-1]
-    lower = bb.bollinger_lband().iloc[-1]
-
-    # Candlestick pattern (simulated)
-    pattern = "Hammer"
-
-    # Sentiment (simulated)
-    sentiment = "Positive"
-    volume_spike = True
-
-    # Strategy logic
-    signal = "HOLD"
-    if rsi < 30 and macd_val > macd_signal and sentiment == "Positive":
-        signal = "BUY"
-    elif rsi > 70 and macd_val < macd_signal and sentiment == "Negative":
-        signal = "SELL"
-
-    # Safe float values for JSON
-    def safe(val):
-        return None if val is None or math.isnan(val) or math.isinf(val) else round(val, 2)
-
-    return {
-        "symbol": symbol,
-        "strategy_signal": signal,
-        "indicators": {
-            "rsi": safe(rsi),
-            "macd": safe(macd_val),
-            "macd_signal": safe(macd_signal),
-            "bollinger_upper": safe(upper),
-            "bollinger_lower": safe(lower),
-            "candlestick_pattern": pattern,
-            "sentiment": sentiment,
-            "volume_spike": volume_spike
-        },
-        "note": "Strategy combines RSI, MACD, Bollinger Bands, candlestick pattern, sentiment and volume"
-    }
+# --- Live Feed Route ---
+@app.get("/live
