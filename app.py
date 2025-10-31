@@ -207,9 +207,31 @@ def price_action(symbol: str = "NIFTY"):
     }
     df = pd.DataFrame(data)
     patterns = []
+
     for i in range(len(df)):
         o, h, l, c = df["open"][i], df["high"][i], df["low"][i], df["close"][i]
         body = abs(c - o)
         range_ = h - l
+
         if body < 0.2 and range_ > 1.5:
-    patterns.append("Doji")
+            patterns.append("Doji")
+        elif c > o and (o - l) > body * 2:
+            patterns.append("Hammer")
+        elif i > 0:
+            prev_o, prev_c = df["open"][i - 1], df["close"][i - 1]
+            if c > o and o < prev_c and c > prev_o:
+                patterns.append("Bullish Engulfing")
+            elif c < o and o > prev_c and c < prev_o:
+                patterns.append("Bearish Engulfing")
+            else:
+                patterns.append("None")
+        else:
+            patterns.append("None")
+
+    df["pattern"] = patterns
+
+    return {
+        "symbol": symbol,
+        "candlestick_patterns": df["pattern"].tolist(),
+        "note": "Basic price action analysis using simulated OHLC data"
+    }
