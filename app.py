@@ -38,8 +38,8 @@ except Exception as e:
 # --- WebSocket Setup ---
 latest_ticks = {}
 
-if FEED_TOKEN:
-    sws = SmartWebSocketV2(FEED_TOKEN, client_id)
+if FEED_TOKEN:jwt_token = session_data.get("jwtToken") or session_data.get("data", {}).get("jwtToken")
+sws = SmartWebSocketV2(FEED_TOKEN, client_id, api_key, jwt_token)
 
     def on_data(wsapp, message):
         token = message.get("token")
