@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from SmartApi import SmartConnect
 import os, pyotp
 import pandas as pd
-import pandas_ta as ta
+import ta
+from ta.momentum import RSIIndicator
 
 app = FastAPI()
 

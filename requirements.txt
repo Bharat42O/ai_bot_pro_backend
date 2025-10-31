@@ -8,7 +8,7 @@ python-multipart
 pydantic
 websocket-client
 pandas
-pandas_ta
+ta
 python-dotenv
 yfinance
 aiohttp
